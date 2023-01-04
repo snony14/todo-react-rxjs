@@ -1,24 +1,37 @@
 import React from 'react';
-import logo from './logo.svg';
+import {bind, Subscribe} from '@react-rxjs/core'
+import {map} from 'rxjs/operators'
+import { createSignal } from '@react-rxjs/utils';
+
 import './App.css';
 
-function App() {
+// A signal is an entry point to react-rxjs. It's equivalent to using a subject
+const [textChange$, setText] = createSignal<string>();
+
+// bind returns a tuple that contains the hook, plus the underlying shared observable so it can be used by other streams
+const [useText, text$] = bind(textChange$, "")
+
+const [useCharCount, charCount] = bind(text$.pipe(map((text)=>text.length)))
+
+const CharacterCount:React.FC = ()=>{
+  const count = useCharCount()
+
+  return <>Character Count: {count}</>
+}
+
+const App:React.FC = ()=>{
+  const text = useText()
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Subscribe>
+      <input type="text" value={text} onChange={e=>{setText(e.target.value)}}/>
+      <br />
+      <span>Echo: {text}</span>
+      <br />
+      <CharacterCount />
+
+      </Subscribe>
     </div>
   );
 }
